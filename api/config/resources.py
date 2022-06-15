@@ -1,0 +1,21 @@
+from decouple import config
+
+API_NAME = config("API_NAME")
+
+API_DESCRIPTION = config("API_DESCRIPTION")
+
+API_URL = config('API_URL')
+
+API_VERSION = '0.0.1'
+
+API_PREFIX = '/api/v1'
+
+AUTH_SECRET = config('AUTH_SECRET')
+
+AUTH_ALGORITHM = config('AUTH_ALGORITHM')
+
+SESSION_LIFETIME = int(config('SESSION_LIFETIME'))
+
+SESSION_MAX_LIFETIME = int(config('SESSION_MAX_LIFETIME'))
+
+FILESYSTEM_DRIVER = config('FILESYSTEM_DRIVER')

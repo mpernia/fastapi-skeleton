@@ -1,5 +1,5 @@
-from jwt import encode, InvalidTokenError, ExpiredSignatureError, decode
-from fastapi import Security
+from jose import jwt, JWTError, ExpiredSignatureError
+from fastapi import Request, HTTPException, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
@@ -25,7 +25,7 @@ class AuthHandler:
             to_encode.update({"exp": datetime.utcnow() + timedelta(minutes=SESSION_LIFETIME)})
         else:
             to_encode.update({"exp": datetime.utcnow() + timedelta(hours=SESSION_MAX_LIFETIME)})
-        return encode(to_encode, AUTH_SECRET, algorithm=AUTH_ALGORITHM)
+        return jwt.encode(to_encode, AUTH_SECRET, algorithm=AUTH_ALGORITHM)
 
     def encode_login_token(self, username):
         access_token = self.encode_token(username, "access_token")
@@ -45,25 +45,25 @@ class AuthHandler:
     @staticmethod
     def decode_access_token(token):
         try:
-            payload = decode(token, AUTH_SECRET, algorithms=[AUTH_ALGORITHM])
+            payload = jwt.decode(token, AUTH_SECRET, algorithms=[AUTH_ALGORITHM])
             if payload['sub'] != "access_token":
                 abort('Invalid token')
             return payload['iss']
         except ExpiredSignatureError:
             abort('Signature has expired')
-        except InvalidTokenError as e:
+        except JWTError as e:
             abort('Invalid token')
 
     @staticmethod
     def decode_refresh_token(token):
         try:
-            payload = decode(token, AUTH_SECRET, algorithms=[AUTH_ALGORITHM])
+            payload = jwt.decode(token, AUTH_SECRET, algorithms=[AUTH_ALGORITHM])
             if payload['sub'] != "refresh_token":
                 abort('Invalid token')
             return payload['iss']
         except ExpiredSignatureError:
             abort('Signature has expired')
-        except InvalidTokenError as e:
+        except JWTError as e:
             abort('Invalid token')
 
     def auth_access_wrapper(self, auth: HTTPAuthorizationCredentials = Security(security)):
@@ -71,3 +71,14 @@ class AuthHandler:
 
     def auth_refresh_wrapper(self, auth: HTTPAuthorizationCredentials = Security(security)):
         return self.decode_refresh_token(auth.credentials)
+
+    async def verify_token(self, request: Request):
+        try:
+            auth_header = request.headers.get("Authorization")
+            if not auth_header or not auth_header.startswith("Bearer "):
+                raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+            
+            token = auth_header.split(" ")[1]
+            return self.decode_access_token(token)
+        except Exception as e:
+            raise HTTPException(status_code=401, detail=str(e))

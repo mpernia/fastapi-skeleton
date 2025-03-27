@@ -1,21 +1,17 @@
-from decouple import config
+from api.config.settings import get_settings
 
-API_NAME = config("API_NAME")
+settings = get_settings()
 
-API_DESCRIPTION = config("API_DESCRIPTION")
+API_NAME = settings.APP_NAME
+API_VERSION = settings.APP_VERSION
+API_DESCRIPTION = "A modern FastAPI application with batteries included"
+API_PREFIX = settings.API_PREFIX
 
-API_URL = config('API_URL')
+# Security settings
+AUTH_SECRET = str(settings.SECRET_KEY.get_secret_value())
+AUTH_ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
-API_VERSION = '0.0.1'
-
-API_PREFIX = '/api/v1'
-
-AUTH_SECRET = config('AUTH_SECRET')
-
-AUTH_ALGORITHM = config('AUTH_ALGORITHM')
-
-SESSION_LIFETIME = int(config('SESSION_LIFETIME'))
-
-SESSION_MAX_LIFETIME = int(config('SESSION_MAX_LIFETIME'))
-
-FILESYSTEM_DRIVER = config('FILESYSTEM_DRIVER')
+# Session settings
+SESSION_LIFETIME = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+SESSION_MAX_LIFETIME = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 24  # 24 hours

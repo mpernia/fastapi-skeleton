@@ -1,17 +1,14 @@
-from decouple import config
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from api.config.settings import get_settings
 
-DB_CONNECTION = config("DB_CONNECTION")
-DB_HOST = config("DB_HOST")
-DB_USER = config("DB_USER")
-DB_PASSWORD = config("DB_PASSWORD")
-DB_NAME = config("DB_NAME")
+settings = get_settings()
 
-SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root@localhost/test_fastapi"
+DATABASE_URL = str(settings.DATABASE_URL)
+REDIS_URL = str(settings.REDIS_URL) if settings.REDIS_URL else None
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
